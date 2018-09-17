@@ -1,12 +1,6 @@
 # zero
 A Lightweight Socket Service with heartbeat, Can be easily used in TCP server development.
 
-[![Build Status](https://api.travis-ci.org/9b9387/zero.svg?branch=master)](https://travis-ci.org/9b9387/zero)
-[![Go Report Card](https://goreportcard.com/badge/github.com/9b9387/zero)](https://goreportcard.com/report/github.com/9b9387/zero)
-[![GoDoc](https://godoc.org/github.com/9b9387/zero?status.png)](https://godoc.org/github.com/9b9387/zero)
-
-Wiki Page [https://github.com/9b9387/zero/wiki](https://github.com/9b9387/zero/wiki)
-
 ## Requirements
 
 Go version: 1.9.x or later
@@ -14,11 +8,11 @@ Go version: 1.9.x or later
 ## Usage
 
 ```
-go get -u github.com/9b9387/zero
+go get -u github.com/rocymp/zero
 ```
 
 ```go
-import "github.com/9b9387/zero"
+import "github.com/rocymp/zero"
 
 func main() {
  	host := "127.0.0.1:18787"
@@ -41,4 +35,3 @@ func main() {
 
 
 ```
-Example Code: [https://github.com/9b9387/zero/blob/master/service_test.go](https://github.com/9b9387/zero/blob/master/service_test.go)
