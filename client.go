@@ -1,6 +1,8 @@
 package zero
 
 import (
+	"context"
+	"log"
 	"net"
 	"time"
 )
@@ -13,7 +15,7 @@ type SocketClient struct {
 	status     int
 	startTS    int64
 	stopCh     chan int
-	conn       *net.TCPConn
+	conn       *Conn
 }
 
 func NewSocketClient(addr string, interval int) (sc *SocketClient) {
@@ -31,23 +33,20 @@ func NewSocketClient(addr string, interval int) (sc *SocketClient) {
 		hbInterval: time.Duration(interval) * time.Second,
 		stopCh:     make(chan int),
 		saddr:      addr,
-		conn:       conn,
 		status:     STInited,
 		startTS:    time.Now().Unix(),
 	}
 
+	cconn := NewConn(conn, sc.hbInterval, sc.hbInterval*3)
+
+	sc.conn = cconn
 	return
 }
 
 func (sc *SocketClient) SendMessage(cmdId int32, dataIn []byte) error {
 	msg := NewMessage(cmdId, dataIn)
-	data, err := Encode(msg)
-	if err != nil {
-		return err
-	}
-	sc.conn.Write(data)
 
-	return nil
+	return sc.conn.SendMessage(msg)
 }
 
 // RegMessageHandler register message handler
@@ -61,20 +60,36 @@ func (s *SocketClient) Stop() {
 }
 
 // Serv Start socket service
-func (s *SocketClient) Online() {
+func (s *SocketClient) online() {
 	s.status = STRunning
+	ctx, cancel := context.WithCancel(context.Background())
 
-	go func() {
-		hbData := make([]byte, 0)
-		timer := time.NewTicker(s.hbInterval)
-
-		for {
-			select {
-			case <-s.stopCh:
-				return
-			case <-timer.C:
-				s.SendMessage(MsgHeartbeat, hbData)
-			}
-		}
+	defer func() {
+		cancel()
+		s.conn.Close()
 	}()
+
+	go s.conn.readCoroutine(ctx)
+	go s.conn.writeCoroutine(ctx)
+
+	for {
+		select {
+		case err := <-s.conn.done:
+			log.Printf("Conn Error %#v\n", err)
+			return
+
+		case msg := <-s.conn.messageCh:
+			if s.onMessage != nil {
+				s.onMessage(msg)
+			}
+		case <-s.stopCh:
+			return
+		}
+	}
+}
+
+// Serv Start socket service
+func (s *SocketClient) Online() {
+	go s.online()
+	return
 }
