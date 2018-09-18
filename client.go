@@ -2,7 +2,6 @@ package zero
 
 import (
 	"context"
-	"log"
 	"net"
 	"time"
 )
@@ -74,14 +73,14 @@ func (s *SocketClient) online() {
 
 	for {
 		select {
-		case err := <-s.conn.done:
-			log.Printf("Conn Error %#v\n", err)
-			return
+		case <-s.conn.done:
+			continue
 
 		case msg := <-s.conn.messageCh:
 			if s.onMessage != nil {
 				s.onMessage(msg)
 			}
+
 		case <-s.stopCh:
 			return
 		}
