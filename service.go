@@ -3,6 +3,7 @@ package zero
 import (
 	"context"
 	"errors"
+	"log"
 	"net"
 	"sync"
 	"time"
@@ -23,7 +24,7 @@ type SocketService struct {
 }
 
 // NewSocketService create a new socket service
-func NewSocketService(laddr string) (*SocketService, error) {
+func NewSocketService(laddr string, hbInterval int) (*SocketService, error) {
 
 	l, err := net.Listen("tcp", laddr)
 
@@ -34,8 +35,8 @@ func NewSocketService(laddr string) (*SocketService, error) {
 	s := &SocketService{
 		sessions:   &sync.Map{},
 		stopCh:     make(chan error),
-		hbInterval: 0 * time.Second,
-		hbTimeout:  0 * time.Second,
+		hbInterval: time.Duration(hbInterval) * time.Second,
+		hbTimeout:  3 * time.Duration(hbInterval) * time.Second,
 		laddr:      laddr,
 		status:     STInited,
 		listener:   l,
@@ -86,8 +87,8 @@ func (s *SocketService) acceptHandler(ctx context.Context) {
 	for {
 		c, err := s.listener.Accept()
 		if err != nil {
-			s.stopCh <- err
-			return
+			log.Printf("[Accept] Failed to accept %#v\n", err)
+			continue
 		}
 
 		go s.connectHandler(ctx, c)

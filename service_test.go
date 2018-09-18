@@ -10,7 +10,7 @@ import (
 func TestService(t *testing.T) {
 	host := "127.0.0.1:18787"
 
-	ss, err := NewSocketService(host)
+	ss, err := NewSocketService(host, 3)
 	if err != nil {
 		return
 	}
