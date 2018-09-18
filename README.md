@@ -10,7 +10,7 @@ Go version: 1.9.x or later
 ```
 go get -u github.com/rocymp/zero
 ```
-
+### Server Case
 ```go
 import "github.com/rocymp/zero"
 
@@ -31,6 +31,38 @@ func main() {
 	ss.RegDisconnectHandler(HandleDisconnect)
 
 	ss.Serv()
+}
+
+
+```
+### Client Case
+```go
+package main
+
+import (
+	"github.com/rocymp/zero"
+)
+
+func main() {
+
+	cs := zero.NewSocketClient("127.0.0.1:18888", 3)
+	if cs == nil {
+		log.Printf("connect failed\n")
+		return 
+	}
+
+	// handler server message
+	cs.RegMessageHandler(HandleMessage)
+
+	// client online and heartbeat
+	cs.Online()
+
+	// client send message
+	cs.SendMessage(23, []byte("hello world!"))
+
+	// client stop
+	cs.Stop()
+	
 }
 
 
